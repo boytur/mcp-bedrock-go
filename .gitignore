@@ -1,0 +1,29 @@
+# Binaries for the current project
+/bin/
+/pkg/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Build artifacts
+*.o
+*.a
+
+# Test results
+*.test
+*.out
+
+# IDE specific files (e.g., VS Code)
+.vscode/
+.idea/
+
+# Operating System generated files
+.DS_Store
+Thumbs.db
+
+# Dependency management
+# If you are using go modules, you might want to ignore the module cache
+# For example, if you are using a vendor directory
+# vendor/
+.env
