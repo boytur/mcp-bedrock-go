@@ -1,0 +1,275 @@
+{
+    "workcenters": [
+        {
+            "name": "PRINT STATION",
+            "capacity": 1,
+            "time_efficiency": 100
+        },
+        {
+            "name": "DIECUT STATION",
+            "capacity": 1,
+            "time_efficiency": 100
+        },
+        {
+            "name": "FOLDING LINE",
+            "capacity": 3,
+            "time_efficiency": 120
+        }
+    ],
+    "products": [
+        {
+            "name": "A100 - Standard Box",
+            "default_code": "A100",
+            "type": "product"
+        },
+        {
+            "name": "A200 - Medium Box",
+            "default_code": "A200",
+            "type": "product"
+        },
+        {
+            "name": "A300 - Large Box",
+            "default_code": "A300",
+            "type": "product"
+        },
+        {
+            "name": "Material X",
+            "default_code": "MAT-X",
+            "type": "product"
+        },
+        {
+            "name": "Material Y",
+            "default_code": "MAT-Y",
+            "type": "product"
+        },
+        {
+            "name": "Material Z",
+            "default_code": "MAT-Z",
+            "type": "product"
+        },
+        {
+            "name": "CUST-BOX-A",
+            "default_code": "CUST-A",
+            "type": "product"
+        },
+        {
+            "name": "CUST-BOX-B",
+            "default_code": "CUST-B",
+            "type": "product"
+        },
+        {
+            "name": "CUST-BOX-C",
+            "default_code": "CUST-C",
+            "type": "product"
+        },
+        {
+            "name": "Ink A",
+            "default_code": "INK-A",
+            "type": "product"
+        },
+        {
+            "name": "Glue Pack",
+            "default_code": "GLUE-PACK",
+            "type": "product"
+        },
+        {
+            "name": "Coating",
+            "default_code": "COAT",
+            "type": "product"
+        }
+    ],
+    "bom": [
+        {
+            "product_default_code": "A100",
+            "lines": [
+                {
+                    "product": "MAT-X",
+                    "qty": 1
+                },
+                {
+                    "product": "MAT-Y",
+                    "qty": 2
+                },
+                {
+                    "product": "INK-A",
+                    "qty": 1
+                }
+            ]
+        },
+        {
+            "product_default_code": "A200",
+            "lines": [
+                {
+                    "product": "MAT-Y",
+                    "qty": 3
+                },
+                {
+                    "product": "INK-A",
+                    "qty": 2
+                }
+            ]
+        },
+        {
+            "product_default_code": "A300",
+            "lines": [
+                {
+                    "product": "MAT-X",
+                    "qty": 2
+                },
+                {
+                    "product": "MAT-Z",
+                    "qty": 3
+                },
+                {
+                    "product": "INK-A",
+                    "qty": 1
+                },
+                {
+                    "product": "COAT",
+                    "qty": 1
+                }
+            ]
+        },
+        {
+            "product_default_code": "CUST-A",
+            "lines": [
+                {
+                    "product": "MAT-X",
+                    "qty": 4
+                },
+                {
+                    "product": "MAT-Y",
+                    "qty": 3
+                },
+                {
+                    "product": "INK-A",
+                    "qty": 1
+                }
+            ]
+        },
+        {
+            "product_default_code": "CUST-B",
+            "lines": [
+                {
+                    "product": "MAT-Z",
+                    "qty": 2
+                },
+                {
+                    "product": "MAT-Y",
+                    "qty": 2
+                },
+                {
+                    "product": "GLUE-PACK",
+                    "qty": 1
+                }
+            ]
+        },
+        {
+            "product_default_code": "CUST-C",
+            "lines": [
+                {
+                    "product": "MAT-X",
+                    "qty": 5
+                },
+                {
+                    "product": "COAT",
+                    "qty": 1
+                }
+            ]
+        }
+    ],
+    "routing": [
+        {
+            "product": "A100",
+            "steps": [
+                "PRINT",
+                "DIECUT",
+                "FOLD"
+            ]
+        },
+        {
+            "product": "A200",
+            "steps": [
+                "PRINT",
+                "DIECUT",
+                "FOLD"
+            ]
+        },
+        {
+            "product": "A300",
+            "steps": [
+                "PRINT",
+                "DIECUT",
+                "FOLD"
+            ]
+        },
+        {
+            "product": "CUST-A",
+            "steps": [
+                "PRINT",
+                "DIECUT",
+                "FOLD"
+            ]
+        },
+        {
+            "product": "CUST-B",
+            "steps": [
+                "PRINT",
+                "DIECUT",
+                "FOLD"
+            ]
+        },
+        {
+            "product": "CUST-C",
+            "steps": [
+                "PRINT",
+                "DIECUT",
+                "FOLD"
+            ]
+        }
+    ],
+    "mrp_orders": [
+        {
+            "product_default_code": "A100",
+            "qty": 1000,
+            "deadline": "2025-01-20 14:00"
+        },
+        {
+            "product_default_code": "A200",
+            "qty": 500,
+            "deadline": "2025-01-21 10:00"
+        },
+        {
+            "product_default_code": "A300",
+            "qty": 250,
+            "deadline": "2025-01-22 12:00"
+        },
+        {
+            "product_default_code": "CUST-A",
+            "qty": 200,
+            "deadline": "2025-01-20 18:00"
+        },
+        {
+            "product_default_code": "CUST-B",
+            "qty": 300,
+            "deadline": "2025-01-20 16:00"
+        },
+        {
+            "product_default_code": "CUST-C",
+            "qty": 100,
+            "deadline": "2025-01-23 09:00"
+        },
+        {
+            "product_default_code": "CUST-A",
+            "qty": 100,
+            "deadline": "2025-01-20 12:00",
+            "rush": true
+        },
+        {
+            "product_default_code": "CUST-B",
+            "qty": 50,
+            "deadline": "2025-01-20 11:00",
+            "rush": true
+        }
+    ]
+}
