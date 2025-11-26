@@ -1,0 +1,182 @@
+{
+    "workcenters": [
+        {
+            "name": "PRINT STATION",
+            "capacity": 1,
+            "cost_per_hour": 1500,
+            "time_efficiency": 100
+        },
+        {
+            "name": "DIECUT STATION",
+            "capacity": 1,
+            "cost_per_hour": 800,
+            "time_efficiency": 100
+        },
+        {
+            "name": "FOLDING LINE",
+            "capacity": 3,
+            "cost_per_hour": 500,
+            "time_efficiency": 120
+        }
+    ],
+    "products": [
+        {
+            "name": "A100 - Standard Box",
+            "default_code": "A100",
+            "type": "product",
+            "list_price": 5.0,
+            "standard_price": 2.5,
+            "tardiness_penalty": 0.5
+        },
+        {
+            "name": "CUST-BOX-B (Fragile)",
+            "default_code": "CUST-B",
+            "type": "product",
+            "list_price": 12.0,
+            "standard_price": 5.0,
+            "tardiness_penalty": 5.0
+        },
+        {
+            "name": "RUSH-TEA-BOX (Rush Order)",
+            "default_code": "RUSH-TEA",
+            "type": "product",
+            "list_price": 15.0,
+            "standard_price": 4.0,
+            "tardiness_penalty": 25.0
+        },
+        {
+            "name": "Material X",
+            "default_code": "MAT-X",
+            "type": "product",
+            "list_price": 0.0,
+            "standard_price": 1.0
+        },
+        {
+            "name": "Ink A",
+            "default_code": "INK-A",
+            "type": "product",
+            "list_price": 0.0,
+            "standard_price": 0.5
+        },
+        {
+            "name": "Glue Pack",
+            "default_code": "GLUE-PACK",
+            "type": "product",
+            "list_price": 0.0,
+            "standard_price": 0.3
+        }
+    ],
+    "bom": [
+        {
+            "product_default_code": "A100",
+            "lines": [
+                {
+                    "product": "MAT-X",
+                    "qty": 1.0
+                },
+                {
+                    "product": "INK-A",
+                    "qty": 0.2
+                }
+            ]
+        },
+        {
+            "product_default_code": "CUST-B",
+            "lines": [
+                {
+                    "product": "MAT-X",
+                    "qty": 1.5
+                },
+                {
+                    "product": "INK-A",
+                    "qty": 0.5
+                },
+                {
+                    "product": "GLUE-PACK",
+                    "qty": 1.0
+                }
+            ]
+        },
+        {
+            "product_default_code": "RUSH-TEA",
+            "lines": [
+                {
+                    "product": "MAT-X",
+                    "qty": 2.0
+                },
+                {
+                    "product": "INK-A",
+                    "qty": 0.8
+                }
+            ]
+        }
+    ],
+    "routing": [
+        {
+            "product": "A100",
+            "steps": [
+                "PRINT STATION",
+                "DIECUT STATION",
+                "FOLDING LINE"
+            ],
+            "operation_times": [
+                3000,
+                1500,
+                600
+            ]
+        },
+        {
+            "product": "CUST-B",
+            "steps": [
+                "PRINT STATION",
+                "DIECUT STATION",
+                "FOLDING LINE"
+            ],
+            "operation_times": [
+                5000,
+                2000,
+                800
+            ]
+        },
+        {
+            "product": "RUSH-TEA",
+            "steps": [
+                "PRINT STATION",
+                "DIECUT STATION",
+                "FOLDING LINE"
+            ],
+            "operation_times": [
+                4000,
+                1800,
+                700
+            ]
+        }
+    ],
+    "mrp_orders": [
+        {
+            "product_default_code": "A100",
+            "qty": 5000,
+            "deadline": "2025-01-20 14:00:00",
+            "current_step": "PRINT STATION",
+            "status": "Running",
+            "remaining_time_mins": 150
+        },
+        {
+            "product_default_code": "CUST-B",
+            "qty": 2000,
+            "deadline": "2025-01-20 18:00:00",
+            "current_step": "PRINT STATION",
+            "status": "Waiting",
+            "remaining_time_mins": 0
+        },
+        {
+            "product_default_code": "RUSH-TEA",
+            "qty": 1000,
+            "deadline": "2025-01-20 12:00:00",
+            "status": "Draft",
+            "rush": true,
+            "ot_cost": 8000.0,
+            "changeover_time_mins": 45
+        }
+    ]
+}
