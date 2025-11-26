@@ -1,159 +1,226 @@
 {
     "workcenters": [
         {
+            "id": 1,
             "name": "PRINT STATION",
             "capacity": 1,
             "cost_per_hour": 1500,
-            "time_efficiency": 100
+            "oee": 0.85,
+            "time_efficiency": 100,
+            "setup_time_mins": 10,
+            "teardown_time_mins": 5
         },
         {
+            "id": 2,
             "name": "DIECUT STATION",
             "capacity": 1,
             "cost_per_hour": 800,
-            "time_efficiency": 100
+            "oee": 0.9,
+            "time_efficiency": 100,
+            "setup_time_mins": 5,
+            "teardown_time_mins": 5
         },
         {
+            "id": 3,
             "name": "FOLDING LINE",
             "capacity": 3,
             "cost_per_hour": 500,
-            "time_efficiency": 120
+            "oee": 0.92,
+            "time_efficiency": 120,
+            "setup_time_mins": 3,
+            "teardown_time_mins": 2
         }
     ],
     "products": [
         {
+            "id": 101,
             "name": "A100 - Standard Box",
             "default_code": "A100",
             "type": "product",
+            "category": "Box",
+            "uom": "unit",
             "list_price": 5.0,
             "standard_price": 2.5,
             "tardiness_penalty": 0.5
         },
         {
+            "id": 102,
             "name": "CUST-BOX-B (Fragile)",
             "default_code": "CUST-B",
             "type": "product",
+            "category": "Box",
+            "uom": "unit",
             "list_price": 12.0,
             "standard_price": 5.0,
             "tardiness_penalty": 5.0
         },
         {
+            "id": 103,
             "name": "RUSH-TEA-BOX (Rush Order)",
             "default_code": "RUSH-TEA",
             "type": "product",
+            "category": "Box",
+            "uom": "unit",
             "list_price": 15.0,
             "standard_price": 4.0,
-            "tardiness_penalty": 25.0
+            "tardiness_penalty": 25.0,
+            "rush": true
         },
         {
+            "id": 201,
             "name": "Material X",
             "default_code": "MAT-X",
-            "type": "product",
-            "list_price": 0.0,
+            "type": "raw",
+            "uom": "kg",
             "standard_price": 1.0
         },
         {
+            "id": 202,
             "name": "Ink A",
             "default_code": "INK-A",
-            "type": "product",
-            "list_price": 0.0,
+            "type": "raw",
+            "uom": "ml",
             "standard_price": 0.5
         },
         {
+            "id": 203,
             "name": "Glue Pack",
             "default_code": "GLUE-PACK",
-            "type": "product",
-            "list_price": 0.0,
+            "type": "raw",
+            "uom": "pack",
             "standard_price": 0.3
         }
     ],
     "bom": [
         {
+            "bom_id": 1,
+            "product_id": 101,
             "product_default_code": "A100",
             "lines": [
                 {
                     "product": "MAT-X",
-                    "qty": 1.0
+                    "qty": 1.0,
+                    "uom": "kg",
+                    "scrap_rate": 0.02
                 },
                 {
                     "product": "INK-A",
-                    "qty": 0.2
+                    "qty": 0.2,
+                    "uom": "ml",
+                    "scrap_rate": 0.01
                 }
             ]
         },
         {
+            "bom_id": 2,
+            "product_id": 102,
             "product_default_code": "CUST-B",
             "lines": [
                 {
                     "product": "MAT-X",
-                    "qty": 1.5
+                    "qty": 1.5,
+                    "uom": "kg",
+                    "scrap_rate": 0.03
                 },
                 {
                     "product": "INK-A",
-                    "qty": 0.5
+                    "qty": 0.5,
+                    "uom": "ml",
+                    "scrap_rate": 0.01
                 },
                 {
                     "product": "GLUE-PACK",
-                    "qty": 1.0
+                    "qty": 1.0,
+                    "uom": "pack",
+                    "scrap_rate": 0.00
                 }
             ]
         },
         {
+            "bom_id": 3,
+            "product_id": 103,
             "product_default_code": "RUSH-TEA",
             "lines": [
                 {
                     "product": "MAT-X",
-                    "qty": 2.0
+                    "qty": 2.0,
+                    "uom": "kg",
+                    "scrap_rate": 0.05
                 },
                 {
                     "product": "INK-A",
-                    "qty": 0.8
+                    "qty": 0.8,
+                    "uom": "ml",
+                    "scrap_rate": 0.02
                 }
             ]
         }
     ],
     "routing": [
         {
-            "product": "A100",
-            "steps": [
-                "PRINT STATION",
-                "DIECUT STATION",
-                "FOLDING LINE"
-            ],
-            "operation_times": [
-                3000,
-                1500,
-                600
+            "product_default_code": "A100",
+            "operations": [
+                {
+                    "step": "PRINT STATION",
+                    "workcenter_id": 1,
+                    "cycle_time_secs": 3000
+                },
+                {
+                    "step": "DIECUT STATION",
+                    "workcenter_id": 2,
+                    "cycle_time_secs": 1500
+                },
+                {
+                    "step": "FOLDING LINE",
+                    "workcenter_id": 3,
+                    "cycle_time_secs": 600
+                }
             ]
         },
         {
-            "product": "CUST-B",
-            "steps": [
-                "PRINT STATION",
-                "DIECUT STATION",
-                "FOLDING LINE"
-            ],
-            "operation_times": [
-                5000,
-                2000,
-                800
+            "product_default_code": "CUST-B",
+            "operations": [
+                {
+                    "step": "PRINT STATION",
+                    "workcenter_id": 1,
+                    "cycle_time_secs": 5000
+                },
+                {
+                    "step": "DIECUT STATION",
+                    "workcenter_id": 2,
+                    "cycle_time_secs": 2000
+                },
+                {
+                    "step": "FOLDING LINE",
+                    "workcenter_id": 3,
+                    "cycle_time_secs": 800
+                }
             ]
         },
         {
-            "product": "RUSH-TEA",
-            "steps": [
-                "PRINT STATION",
-                "DIECUT STATION",
-                "FOLDING LINE"
-            ],
-            "operation_times": [
-                4000,
-                1800,
-                700
+            "product_default_code": "RUSH-TEA",
+            "operations": [
+                {
+                    "step": "PRINT STATION",
+                    "workcenter_id": 1,
+                    "cycle_time_secs": 4000
+                },
+                {
+                    "step": "DIECUT STATION",
+                    "workcenter_id": 2,
+                    "cycle_time_secs": 1800
+                },
+                {
+                    "step": "FOLDING LINE",
+                    "workcenter_id": 3,
+                    "cycle_time_secs": 700
+                }
             ]
         }
     ],
     "mrp_orders": [
         {
+            "mo_id": 1001,
             "product_default_code": "A100",
             "qty": 5000,
             "deadline": "2025-01-20 14:00:00",
@@ -162,14 +229,15 @@
             "remaining_time_mins": 150
         },
         {
+            "mo_id": 1002,
             "product_default_code": "CUST-B",
             "qty": 2000,
             "deadline": "2025-01-20 18:00:00",
             "current_step": "PRINT STATION",
-            "status": "Waiting",
-            "remaining_time_mins": 0
+            "status": "Waiting"
         },
         {
+            "mo_id": 1003,
             "product_default_code": "RUSH-TEA",
             "qty": 1000,
             "deadline": "2025-01-20 12:00:00",
