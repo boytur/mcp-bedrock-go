@@ -69,5 +69,8 @@ func awsString(s string) *string { return &s }
 // requested by the user. It returns a single string which should be passed
 // to GenerateText.
 func FormatSystemPrompt(userMessage string) string {
-	return fmt.Sprintf("<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n%s\n<|eot_id|>\n<|start_header_id|>assistant<|end_header_id|>\n", userMessage)
+	// Append an instruction asking the model to reply in simple, non-technical Thai.
+	// This makes tool outputs easier for human operators to read.
+	instructionThai := "\n\nโปรดตอบเป็นภาษาไทยที่เข้าใจง่าย ไม่ต้องใช้คำศัพท์ทางเทคนิค; สรุปใจความสำคัญเป็นข้อสั้นๆ และให้ข้อเสนอแนะที่ปฏิบัติได้เมื่อจำเป็น."
+	return fmt.Sprintf("<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n%s%s\n<|eot_id|>\n<|start_header_id|>assistant<|end_header_id|>\n", userMessage, instructionThai)
 }
