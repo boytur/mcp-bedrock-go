@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"mcp-bedrock-go/internal/logging"
 )
 
 // Client is a minimal Odoo JSON-RPC client used by tools.
@@ -34,8 +36,10 @@ func New(url, db, user, key string) *Client {
 // rpc posts a JSON-RPC payload and returns raw body and decoded map.
 func (c *Client) rpc(ctx context.Context, payload any) ([]byte, map[string]any, error) {
 	b, _ := json.Marshal(payload)
+	logging.Debugf("Odoo RPC request: %s", string(b))
 	req, err := http.NewRequestWithContext(ctx, "POST", c.URL, bytes.NewReader(b))
 	if err != nil {
+		logging.Errorf("Odoo new request error: %v", err)
 		return nil, nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -46,18 +50,21 @@ func (c *Client) rpc(ctx context.Context, payload any) ([]byte, map[string]any, 
 	}
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
+	logging.Debugf("Odoo RPC response status=%d body=%s", resp.StatusCode, string(body))
 
 	var out map[string]any
 	_ = json.Unmarshal(body, &out)
 
 	// If HTTP-level error
 	if resp.StatusCode >= 400 {
+		logging.Errorf("Odoo http error %d: %s", resp.StatusCode, string(body))
 		return body, out, fmt.Errorf("http %d: %s", resp.StatusCode, string(body))
 	}
 
 	// If JSON-RPC returned an error object, surface it as Go error with details
 	if rpcErr, ok := out["error"]; ok {
 		// try to extract message/data
+		logging.Errorf("Odoo rpc error: %v", rpcErr)
 		return body, out, fmt.Errorf("odoo rpc error: %v", rpcErr)
 	}
 
@@ -79,6 +86,7 @@ func (c *Client) Login() error {
 
 	_, out, err := c.rpc(ctx, payload)
 	if err != nil {
+		logging.Errorf("Odoo login rpc failed: %v", err)
 		return err
 	}
 
@@ -87,6 +95,7 @@ func (c *Client) Login() error {
 		switch v := res.(type) {
 		case float64:
 			c.UID = int(v)
+			logging.Debugf("Odoo login uid=%d", c.UID)
 			return nil
 		case bool:
 			if v == false {
@@ -124,6 +133,7 @@ func (c *Client) SearchRead(model string, fields []string, domain []any) ([]map[
 
 	body, out, err := c.rpc(ctx, payload)
 	if err != nil {
+		logging.Errorf("Odoo SearchRead error model=%s err=%v", model, err)
 		return nil, err
 	}
 
@@ -164,6 +174,7 @@ func (c *Client) Create(model string, vals map[string]any) (int, error) {
 
 	_, out, err := c.rpc(ctx, payload)
 	if err != nil {
+		logging.Errorf("Odoo Create error model=%s err=%v vals=%v", model, err, vals)
 		return 0, err
 	}
 

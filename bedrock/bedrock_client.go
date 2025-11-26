@@ -6,6 +6,8 @@ import (
 	"fmt"
 
 	bedrockruntime "github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
+
+	"mcp-bedrock-go/internal/logging"
 )
 
 // Client wraps the AWS Bedrock runtime client with a small helper.
@@ -38,6 +40,7 @@ func (c *Client) GenerateText(ctx context.Context, modelID string, prompt any) (
 		bodyBytes = b
 	}
 
+	logging.Debugf("Bedrock InvokeModel model=%s prompt=%s", modelID, string(bodyBytes))
 	resp, err := c.inner.InvokeModel(ctx, &bedrockruntime.InvokeModelInput{
 		ModelId:     &modelID,
 		ContentType: awsString("application/json"),
@@ -45,10 +48,11 @@ func (c *Client) GenerateText(ctx context.Context, modelID string, prompt any) (
 		Body:        bodyBytes,
 	})
 	if err != nil {
+		logging.Errorf("Bedrock InvokeModel error: %v", err)
 		return "", err
 	}
-
 	// Best-effort: return raw body if we can't parse a structured response
+	logging.Debugf("Bedrock response (raw): %s", string(resp.Body))
 	var out any
 	_ = json.Unmarshal(resp.Body, &out)
 	switch v := out.(type) {
@@ -56,6 +60,7 @@ func (c *Client) GenerateText(ctx context.Context, modelID string, prompt any) (
 		// try to extract common fields
 		if gen, ok := v["generation"]; ok {
 			if s, ok := gen.(string); ok {
+				logging.Debugf("Bedrock generation extracted: %s", s)
 				return s, nil
 			}
 		}
