@@ -1,3 +1,5 @@
+// Tool: ProductionPlanner
+// คำอธิบาย (ไทย): เรียก LLM เพื่อสร้างแผนการผลิตสั้นๆ พร้อมการมอบหมาย workcenter และประมาณระยะเวลา โดยใช้บริบทจาก Odoo
 package tools
 
 import (

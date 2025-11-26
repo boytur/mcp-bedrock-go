@@ -1,3 +1,5 @@
+// Tool: OrderRisk
+// คำอธิบาย (ไทย): ประเมินความเสี่ยงของ Manufacturing Order (MO) โดยตรวจสอบสถานะและแนะนำการตรวจสอบวัสดุ
 package tools
 
 import (

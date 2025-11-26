@@ -1,3 +1,5 @@
+// Tool: OrderPriority
+// คำอธิบาย (ไทย): ให้คะแนนหรือเรียงลำดับ Manufacturing Orders (MO) ตามเงื่อนไข เช่น ปริมาณ หรือลำดับความสำคัญ
 package tools
 
 import (

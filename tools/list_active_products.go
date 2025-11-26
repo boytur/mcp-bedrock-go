@@ -1,3 +1,5 @@
+// Tool: ListActiveProducts
+// คำอธิบาย (ไทย): ดึงรายการการผลิต (MO) ที่กำลังทำงานหรือยืนยันไว้ คืนค่าเป็นอาเรย์ JSON
 package tools
 
 import (

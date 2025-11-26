@@ -1,3 +1,5 @@
+// Tool: CapacityCheck
+// คำอธิบาย (ไทย): ตรวจสอบความสามารถของ workcenter ภายในวันที่ที่ระบุ โดยคืนสรุปงาน (workorders) และการใช้งานเป็น JSON
 package tools
 
 import (

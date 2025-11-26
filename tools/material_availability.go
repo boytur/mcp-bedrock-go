@@ -1,3 +1,5 @@
+// Tool: MaterialAvailability
+// คำอธิบาย (ไทย): ตรวจสอบส่วนประกอบใน BOM และระดับสต็อกปัจจุบันสำหรับสินค้า (product_id) หรือ MO (mo_id)
 package tools
 
 import (

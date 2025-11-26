@@ -1,3 +1,5 @@
+// Tool: ScheduleAnalysis
+// คำอธิบาย (ไทย): วิเคราะห์ผลกระทบด้านตารางการผลิตตามโปรไฟล์ที่ระบุ (เช่น Cost-Aware, Throughput) โดยใช้บริบทจาก Odoo และ LLM
 package tools
 
 import (

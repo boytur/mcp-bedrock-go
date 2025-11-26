@@ -1,3 +1,5 @@
+// Tool: CreateMO
+// คำอธิบาย (ไทย): สร้าง Manufacturing Order (MO) บน Odoo โดยระบุ product (code หรือ id), จำนวน (`qty`) และตัวเลือกอื่นๆ
 package tools
 
 import (

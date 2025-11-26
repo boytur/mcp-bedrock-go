@@ -1,3 +1,5 @@
+// Tool: ListAllOrders
+// คำอธิบาย (ไทย): คืนรายการ Manufacturing Orders ทั้งหมด (ยกเว้นสถานะ 'done') เป็น JSON
 package tools
 
 import (

@@ -1,3 +1,5 @@
+// Tool: AddProduct
+// คำอธิบาย (ไทย): สร้างสินค้าบน Odoo โดยรับพารามิเตอร์เช่น `name`, `default_code`, `type`, `list_price` และคืนค่า ID ของสินค้าที่สร้าง
 package tools
 
 import (
