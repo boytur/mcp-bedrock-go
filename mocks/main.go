@@ -13,7 +13,7 @@ import (
 )
 
 // ======================================================
-// ===============  CONFIG VARIABLES  ====================
+// =============== CONFIG VARIABLES =====================
 // ======================================================
 
 var (
@@ -26,10 +26,8 @@ var (
 )
 
 // ======================================================
-// ================== JSON STRUCTS =======================
+// ================= JSON-RPC TYPES =====================
 // ======================================================
-
-// ==== Generic JSON-RPC Structs ====
 
 type RPCErrorData struct {
 	Name    string `json:"name"`
@@ -63,20 +61,31 @@ type RPCRequestParamsObj struct {
 }
 
 // ======================================================
-// ================ MOCK JSON STRUCTS ====================
+// ================= MOCK JSON STRUCTS ==================
 // ======================================================
 
 type MockData struct {
-	Workcenters []ProductObject `json:"workcenters"`
-	Products    []ProductObject `json:"products"`
-	BOM         []BOMItem       `json:"bom"`
-	Routing     []RoutingItem   `json:"routing"`
-	MRPOrders   []MRPOrder      `json:"mrp_orders"`
+	Workcenters []Workcenter  `json:"workcenters"`
+	Products    []MockProduct `json:"products"`
+	BOM         []BOMItem     `json:"bom"`
+	Routing     []RoutingItem `json:"routing"`
+	MRPOrders   []MRPOrder    `json:"mrp_orders"`
 }
 
-type ProductObject struct {
-	DefaultCode string            `json:"default_code"`
-	Raw         map[string]string `json:"-"`
+type Workcenter struct {
+	Name           string  `json:"name"`
+	Capacity       int     `json:"capacity"`
+	CostPerHour    float64 `json:"cost_per_hour"`
+	TimeEfficiency float64 `json:"time_efficiency"`
+}
+
+type MockProduct struct {
+	Name             string  `json:"name"`
+	DefaultCode      string  `json:"default_code"`
+	Type             string  `json:"type"` // ไม่ได้ใช้ส่งเข้า Odoo แล้ว แต่เผื่อใช้ต่อ
+	ListPrice        float64 `json:"list_price"`
+	StandardPrice    float64 `json:"standard_price"`
+	TardinessPenalty float64 `json:"tardiness_penalty"`
 }
 
 type BOMItem struct {
@@ -90,52 +99,49 @@ type BOMLine struct {
 }
 
 type RoutingItem struct {
-	Product string   `json:"product"`
-	Steps   []string `json:"steps"`
+	Product        string   `json:"product"`
+	Steps          []string `json:"steps"`
+	OperationTimes []int    `json:"operation_times"`
 }
 
 type MRPOrder struct {
 	ProductDefaultCode string  `json:"product_default_code"`
 	Qty                float64 `json:"qty"`
 	Deadline           string  `json:"deadline"`
+	Status             string  `json:"status"`
+	CurrentStep        string  `json:"current_step"`
+	RemainingMins      float64 `json:"remaining_time_mins"`
+	Rush               bool    `json:"rush"`
+	OTCost             float64 `json:"ot_cost"`
 }
 
 // ======================================================
-// ================= UTILITY FUNCTIONS ==================
+// ================== UTIL FUNCTIONS ====================
 // ======================================================
 
 func anyToInt(v interface{}) (int, error) {
 	switch t := v.(type) {
 	case float64:
 		return int(t), nil
-	case float32:
-		return int(t), nil
 	case int:
 		return t, nil
-	case int64:
-		return int(t), nil
+	case string:
+		return strconv.Atoi(t)
 	case json.Number:
 		i, err := t.Int64()
 		return int(i), err
-	case string:
-		return strconv.Atoi(t)
 	default:
-		return 0, fmt.Errorf("invalid numeric type: %T", v)
+		return 0, fmt.Errorf("invalid type: %T", v)
 	}
 }
 
-func extractTemplateID(v interface{}) (int, error) {
+func extractMany2oneID(v interface{}) (int, error) {
 	arr, ok := v.([]interface{})
 	if !ok || len(arr) == 0 {
-		return 0, errors.New("invalid template array")
+		return 0, errors.New("invalid many2one value")
 	}
-
 	return anyToInt(arr[0])
 }
-
-// ======================================================
-// =================== JSON-RPC CALLER ===================
-// ======================================================
 
 func callRPC[T any](req RPCRequest) (*T, error) {
 	var resp RPCResponse[T]
@@ -149,7 +155,8 @@ func callRPC[T any](req RPCRequest) (*T, error) {
 	}
 
 	if resp.Error != nil {
-		return nil, fmt.Errorf("rpc error: %s (%s)", resp.Error.Message, resp.Error.Data.Message)
+		return nil, fmt.Errorf("rpc error: %s - %s",
+			resp.Error.Message, resp.Error.Data.Message)
 	}
 
 	if resp.Result == nil {
@@ -160,7 +167,7 @@ func callRPC[T any](req RPCRequest) (*T, error) {
 }
 
 // ======================================================
-// ========================= LOGIN =======================
+// ======================== LOGIN =======================
 // ======================================================
 
 func login() {
@@ -177,7 +184,7 @@ func login() {
 
 	result, err := callRPC[int](req)
 	if err != nil {
-		log.Fatalf("login failed: %v", err)
+		log.Fatalf("Login failed: %v", err)
 	}
 
 	uid = *result
@@ -185,51 +192,41 @@ func login() {
 }
 
 // ======================================================
-// =============== IMPORT PRODUCTS ========================
+// =========== IMPORT PRODUCTS (template+variant) =======
 // ======================================================
 
-func importProducts(mock MockData) map[string]int {
-	idMap := map[string]int{}
+func importProducts(mock MockData) (map[string]int, map[string]int) {
+	templateIDs := map[string]int{}
+	variantIDs := map[string]int{}
 
 	for _, p := range mock.Products {
-		body := map[string]interface{}{
-			"default_code": p.DefaultCode,
+		// 1) Create product.template (ไม่ส่ง type/detailed_type แล้ว)
+		templateBody := map[string]interface{}{
+			"name":           p.Name,
+			"default_code":   p.DefaultCode,
+			"list_price":     p.ListPrice,
+			"standard_price": p.StandardPrice,
 		}
 
-		req := RPCRequest{
+		createTemplateReq := RPCRequest{
 			JSONRPC: "2.0",
 			Method:  "call",
 			Params: RPCRequestParamsObj{
 				Service: "object",
 				Method:  "execute_kw",
-				Args:    []interface{}{db, uid, apiKey, "product.product", "create", []interface{}{body}},
+				Args:    []interface{}{db, uid, apiKey, "product.template", "create", []interface{}{templateBody}},
 			},
-			ID: 1,
+			ID: 2,
 		}
 
-		result, err := callRPC[float64](req)
+		templateID, err := callRPC[int](createTemplateReq)
 		if err != nil {
-			log.Fatalf("product create error: %v", err)
+			log.Fatalf("template create error: %v", err)
 		}
+		templateIDs[p.DefaultCode] = *templateID
 
-		id := int(*result)
-		idMap[p.DefaultCode] = id
-
-		fmt.Println("Created Product:", p.DefaultCode, "→", id)
-	}
-
-	return idMap
-}
-
-// ======================================================
-// ===================== IMPORT BOM ======================
-// ======================================================
-
-func importBOM(mock MockData, idMap map[string]int) {
-	for _, b := range mock.BOM {
-
-		// Read product_tmpl_id
-		reqRead := RPCRequest{
+		// 2) อ่าน variant ที่ Odoo สร้างให้ (product_variant_id)
+		readReq := RPCRequest{
 			JSONRPC: "2.0",
 			Method:  "call",
 			Params: RPCRequestParamsObj{
@@ -237,42 +234,65 @@ func importBOM(mock MockData, idMap map[string]int) {
 				Method:  "execute_kw",
 				Args: []interface{}{
 					db, uid, apiKey,
-					"product.product", "read",
-					[]interface{}{[]int{idMap[b.ProductDefaultCode]}},
-					map[string]interface{}{"fields": []string{"product_tmpl_id"}},
+					"product.template", "read",
+					[]interface{}{[]int{*templateID}},
+					map[string]interface{}{"fields": []string{"product_variant_id"}},
 				},
 			},
-			ID: 1,
+			ID: 3,
 		}
 
 		type ReadResult = []map[string]interface{}
-
-		readRes, err := callRPC[ReadResult](reqRead)
+		readRes, err := callRPC[ReadResult](readReq)
 		if err != nil {
-			log.Fatalf("read template error: %v", err)
+			log.Fatalf("product_variant read error: %v", err)
 		}
 
-		templateID, err := extractTemplateID((*readRes)[0]["product_tmpl_id"])
+		variantID, err := extractMany2oneID((*readRes)[0]["product_variant_id"])
 		if err != nil {
-			log.Fatalf("template id parse error: %v", err)
+			log.Fatalf("variant id parse error: %v", err)
 		}
 
-		var lineItems []interface{}
-		for _, ln := range b.Lines {
-			lineItems = append(lineItems, []interface{}{
-				0, 0, map[string]interface{}{
-					"product_id":  idMap[ln.Product],
-					"product_qty": ln.Qty,
-				},
-			})
+		variantIDs[p.DefaultCode] = variantID
+
+		fmt.Println("Created Product:", p.DefaultCode, "→ template_id:", *templateID, "variant_id:", variantID)
+	}
+
+	return templateIDs, variantIDs
+}
+
+// ======================================================
+// ======================== BOM =========================
+// ======================================================
+
+func importBOM(mock MockData, templateIDs, variantIDs map[string]int) {
+	for _, b := range mock.BOM {
+		tmplID, ok := templateIDs[b.ProductDefaultCode]
+		if !ok {
+			log.Fatalf("no template id for product_default_code=%s", b.ProductDefaultCode)
 		}
 
 		bomBody := map[string]interface{}{
-			"product_tmpl_id": templateID,
-			"bom_line_ids":    lineItems,
+			"product_tmpl_id": tmplID,
 		}
 
-		reqCreate := RPCRequest{
+		var lines []interface{}
+		for _, l := range b.Lines {
+			vID, ok := variantIDs[l.Product]
+			if !ok {
+				log.Fatalf("no variant id for BOM component=%s", l.Product)
+			}
+			lines = append(lines, []interface{}{
+				0, 0,
+				map[string]interface{}{
+					"product_id":  vID,
+					"product_qty": l.Qty,
+				},
+			})
+		}
+		bomBody["bom_line_ids"] = lines
+
+		req := RPCRequest{
 			JSONRPC: "2.0",
 			Method:  "call",
 			Params: RPCRequestParamsObj{
@@ -280,26 +300,31 @@ func importBOM(mock MockData, idMap map[string]int) {
 				Method:  "execute_kw",
 				Args:    []interface{}{db, uid, apiKey, "mrp.bom", "create", []interface{}{bomBody}},
 			},
-			ID: 1,
+			ID: 4,
 		}
 
-		_, err = callRPC[int](reqCreate)
+		_, err := callRPC[int](req)
 		if err != nil {
-			log.Fatalf("bom create error: %v", err)
+			log.Fatalf("BOM create error: %v", err)
 		}
 
-		fmt.Println("BOM Created for:", b.ProductDefaultCode)
+		fmt.Println("BOM created →", b.ProductDefaultCode)
 	}
 }
 
 // ======================================================
-// ================== IMPORT MRP ==========================
+// ========================= MRP ========================
 // ======================================================
 
-func importMRP(mock MockData, idMap map[string]int) {
+func importMRP(mock MockData, variantIDs map[string]int) {
 	for _, mo := range mock.MRPOrders {
+		vID, ok := variantIDs[mo.ProductDefaultCode]
+		if !ok {
+			log.Fatalf("no variant id for mrp product_default_code=%s", mo.ProductDefaultCode)
+		}
+
 		body := map[string]interface{}{
-			"product_id":    idMap[mo.ProductDefaultCode],
+			"product_id":    vID,
 			"product_qty":   mo.Qty,
 			"date_deadline": mo.Deadline,
 		}
@@ -312,20 +337,20 @@ func importMRP(mock MockData, idMap map[string]int) {
 				Method:  "execute_kw",
 				Args:    []interface{}{db, uid, apiKey, "mrp.production", "create", []interface{}{body}},
 			},
-			ID: 1,
+			ID: 5,
 		}
 
 		_, err := callRPC[int](req)
 		if err != nil {
-			log.Fatalf("mrp create error: %v", err)
+			log.Fatalf("MRP create error: %v", err)
 		}
 
-		fmt.Println("MRP Created:", mo.ProductDefaultCode)
+		fmt.Println("MRP created →", mo.ProductDefaultCode)
 	}
 }
 
 // ======================================================
-// ========================== MAIN =======================
+// ========================== MAIN ======================
 // ======================================================
 
 func main() {
@@ -338,14 +363,19 @@ func main() {
 
 	login()
 
-	dataBytes, _ := os.ReadFile("mock.json")
+	dataBytes, err := os.ReadFile("mock.json")
+	if err != nil {
+		log.Fatalf("Error reading mock.json: %v", err)
+	}
 
 	var mock MockData
-	json.Unmarshal(dataBytes, &mock)
+	if err := json.Unmarshal(dataBytes, &mock); err != nil {
+		log.Fatalf("Error unmarshalling mock.json: %v", err)
+	}
 
-	idMap := importProducts(mock)
-	importBOM(mock, idMap)
-	importMRP(mock, idMap)
+	templateIDs, variantIDs := importProducts(mock)
+	importBOM(mock, templateIDs, variantIDs)
+	importMRP(mock, variantIDs)
 
 	fmt.Println("✨ Import Completed")
 }
